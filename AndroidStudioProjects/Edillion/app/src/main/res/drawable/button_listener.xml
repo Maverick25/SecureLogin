@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_pressed="true"
-        android:drawable="@color/primary_light" /> <!-- pressed -->
-    <item android:state_enabled="false"
-        android:drawable="@color/primary_dark_material_light" /> <!-- disabled -->
-    <item android:drawable="@color/primary_dark" /> <!-- default -->
+        android:drawable="@color/accent_pressed" /> <!-- pressed -->
+    <item android:drawable="@color/accent" /> <!-- default -->
 </selector>
