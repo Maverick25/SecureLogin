@@ -4,4 +4,12 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="single_line_padding_top">16dp</dimen>
     <dimen name="single_line_padding_bottom">20dp</dimen>
+
+    <dimen name="navigation_drawer_width">280dp</dimen>
+    <dimen name="min_double_toolbar_height">128dp</dimen>
+    <dimen name="keyline_padding_left_72">72dp</dimen>
+    <dimen name="keyline_padding_left_16">16dp</dimen>
+    <dimen name="tab_bar_height">72dp</dimen>
+    <dimen name="action_bar_height">56dp</dimen>
+    <dimen name="double_line__padding_top">16dp</dimen>
 </resources>
