@@ -1,4 +1,4 @@
-package agency.alterway.edillion.fragment;
+package agency.alterway.edillion.fragments;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -12,13 +12,13 @@ import agency.alterway.edillion.R;
 /**
  * Created by marekrigan on 02/05/15.
  */
-public class ReadyFragment extends Fragment {
-
+public class DeletedFragment extends Fragment
+{
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
-        View v =inflater.inflate(R.layout.tab_ready,container,false);
+        View v =inflater.inflate(R.layout.tab_deleted,container,false);
         return v;
     }
 }

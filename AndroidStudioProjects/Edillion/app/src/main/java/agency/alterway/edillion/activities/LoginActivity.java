@@ -1,4 +1,4 @@
-package agency.alterway.edillion;
+package agency.alterway.edillion.activities;
 
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.CursorLoader;
@@ -23,6 +23,7 @@ import android.widget.ViewFlipper;
 import java.util.ArrayList;
 import java.util.List;
 
+import agency.alterway.edillion.R;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;

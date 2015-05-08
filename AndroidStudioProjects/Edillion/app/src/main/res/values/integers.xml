@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <item type="integer" name="loginId" format="integer">100</item>
+    <integer name="loginId" format="integer">100</integer>
+    <integer name="camera_request">42</integer>
+    <integer name="selected_picture">41</integer>
 </resources>

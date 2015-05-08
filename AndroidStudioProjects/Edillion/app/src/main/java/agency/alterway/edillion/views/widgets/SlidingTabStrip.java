@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package agency.alterway.edillion.utils;
+package agency.alterway.edillion.views.widgets;
 
 import android.content.Context;
 import android.graphics.Canvas;

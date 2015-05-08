@@ -9,7 +9,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 22
         versionCode 1
-        versionName "1.0"
+        versionName "0.0.1"
     }
     buildTypes {
         release {
@@ -24,4 +24,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:22.1.0'
     compile 'com.jakewharton:butterknife:6.1.0'
     compile 'com.github.shell-software:fab:1.0.5'
+    compile 'com.getbase:floatingactionbutton:1.9.0'
+    compile 'com.android.support:support-v4:22.1.0'
+    compile project(':opencv')
 }

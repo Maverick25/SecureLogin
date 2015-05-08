@@ -1,24 +1,24 @@
-package agency.alterway.edillion.adapter;
+package agency.alterway.edillion.views.adapters;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
-import agency.alterway.edillion.fragment.ApprovedFragment;
-import agency.alterway.edillion.fragment.DeletedFragment;
-import agency.alterway.edillion.fragment.ReadyFragment;
+import agency.alterway.edillion.fragments.ApprovedFragment;
+import agency.alterway.edillion.fragments.DeletedFragment;
+import agency.alterway.edillion.fragments.ReadyFragment;
 
 /**
  * Created by marekrigan on 02/05/15.
  */
-public class ViewPagerAdapter extends FragmentStatePagerAdapter
+public class PagerDocumentAdapter extends FragmentStatePagerAdapter
 {
 
     CharSequence Titles[]; // This will Store the Titles of the Tabs which are Going to be passed when ViewPagerAdapter is created
     int NumbOfTabs; // Store the number of tabs, this will also be passed when the ViewPagerAdapter is created
 
     // Build a Constructor and assign the passed Values to appropriate values in the class
-    public ViewPagerAdapter(FragmentManager fm,CharSequence mTitles[], int mNumbOfTabsumb) {
+    public PagerDocumentAdapter(FragmentManager fm, CharSequence mTitles[], int mNumbOfTabsumb) {
         super(fm);
 
         this.Titles = mTitles;
