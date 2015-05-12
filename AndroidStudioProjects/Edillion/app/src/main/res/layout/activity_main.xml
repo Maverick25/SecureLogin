@@ -16,6 +16,7 @@
         android:id="@+id/scrollView_tabs"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:scrollbars="none"
         android:layout_below="@id/toolbar_actionbar"
         android:paddingStart="70dp"
         android:paddingLeft="70dp"

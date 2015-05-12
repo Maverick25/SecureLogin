@@ -1,15 +1,20 @@
 package agency.alterway.edillion.activities;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.view.ViewPager;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.widget.RelativeLayout;
 
 import com.getbase.floatingactionbutton.FloatingActionButton;
 
@@ -17,30 +22,34 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 
 import agency.alterway.edillion.R;
+import agency.alterway.edillion.fragments.DescriptionFragment;
 import agency.alterway.edillion.utils.ScanMode;
-import agency.alterway.edillion.views.adapters.PagerScanAdapter;
+import butterknife.ButterKnife;
 import butterknife.InjectView;
 
 public class ScanActivity extends AppCompatActivity {
 
     private ScanMode mode;
-
-    PagerScanAdapter pagerAdapter;
+    private DescriptionFragment descriptionFragment;
+    private Uri imageUri;
 
     @InjectView(R.id.toolbar_actionbar)
     Toolbar mToolbar;
-    @InjectView(R.id.pager_scanFragments)
-    ViewPager pager;
     @InjectView(R.id.fab_approveDocument)
     FloatingActionButton fabApproveDocument;
+    @InjectView(R.id.scan_review)
+    RelativeLayout scanView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_scan);
+        ButterKnife.inject(this);
 
-        mode = ScanMode.fromInt(getIntent().getIntExtra(getString(R.string.scan_selectedMode),-1));
+        setUpToolbar();
+
+        mode = ScanMode.fromInt(getIntent().getIntExtra(getString(R.string.scan_selectedMode), -1));
 
         setScreen(savedInstanceState);
     }
@@ -62,8 +71,16 @@ public class ScanActivity extends AppCompatActivity {
                 switch(mode)
                 {
                     case CAMERA_REQUEST:
-                        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-                        startActivityForResult(cameraIntent, getResources().getInteger(R.integer.camera_request));
+//                        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+//                        startActivityForResult(cameraIntent, getResources().getInteger(R.integer.camera_request));
+                        ContentValues values = new ContentValues();
+                        values.put(MediaStore.Images.Media.TITLE, "New Picture");
+                        values.put(MediaStore.Images.Media.DESCRIPTION, "From your Camera");
+                        imageUri = getContentResolver().insert(
+                                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                        intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                        startActivityForResult(intent, getResources().getInteger(R.integer.camera_request));
                         break;
                     case SELECT_PICTURE:
                         Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
@@ -86,13 +103,6 @@ public class ScanActivity extends AppCompatActivity {
         // Creating The Toolbar and setting it as the Toolbar for the activity
         setSupportActionBar(mToolbar);
         setTitle("Description");
-
-        // Creating The ViewPagerAdapter and Passing Fragment Manager, Titles fot the Tabs and Number Of Tabs.
-        pagerAdapter =  new PagerScanAdapter(getSupportFragmentManager());
-
-        // Assigning ViewPager View and setting the adapter
-        pager.setAdapter(pagerAdapter);
-
     }
 
     @Override
@@ -103,19 +113,45 @@ public class ScanActivity extends AppCompatActivity {
             if(resultCode == RESULT_OK)
             {
                 ByteArrayOutputStream stream;
-                byte[] byteArray;
+                final byte[] byteArray;
+
+//                descriptionFragment = DescriptionFragment.newInstance();
 
                 mode = ScanMode.fromInt(requestCode);
                 switch (mode)
                 {
                     case CAMERA_REQUEST:
-                        Bitmap photo = (Bitmap) data.getExtras().get("data");
+//                        Bitmap photo = (Bitmap) data.getExtras().get("data");
+//
+//                        stream = new ByteArrayOutputStream();
+//                        photo.compress(Bitmap.CompressFormat.PNG, 100, stream);
+//                        byteArray = stream.toByteArray();
 
-                        stream = new ByteArrayOutputStream();
-                        photo.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                        byteArray = stream.toByteArray();
+                        try {
+                            Bitmap thumbnail = MediaStore.Images.Media.getBitmap(
+                                    getContentResolver(), imageUri);
+                            scanView.setBackground(new BitmapDrawable(getResources(), rotateBitmap(thumbnail,90)));
+                            String imageurl = getRealPathFromURI(imageUri);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
 
-                        setUpToolbar();
+//                        new Handler().post(new Runnable() {
+//                            public void run() {
+//                                try {
+//                                    descriptionFragment = descriptionFragment.setUp(byteArray);
+//                                    getSupportFragmentManager()
+//                                            .beginTransaction()
+//                                            .replace(R.id.pager_scanFragments, descriptionFragment)
+//                                            .commit();
+//                                } catch (NullPointerException e) {
+//                                    e.printStackTrace();
+//                                }
+//                            }
+//                        });
+
+//                        documentView.setImageBitmap(photo);
+
 
                         break;
                     case SELECT_PICTURE:
@@ -126,8 +162,22 @@ public class ScanActivity extends AppCompatActivity {
                         pic.compress(Bitmap.CompressFormat.PNG, 100, stream);
                         byteArray = stream.toByteArray();
 
-                        setUpToolbar();
+//                        new Handler().post(new Runnable() {
+//                            public void run() {
+//                                try {
+//                                    descriptionFragment = descriptionFragment.setUp(byteArray);
+//                                    getSupportFragmentManager()
+//                                            .beginTransaction()
+//                                            .replace(R.id.pager_scanFragments, descriptionFragment)
+//                                            .commit();
+//                                } catch (NullPointerException e) {
+//                                    e.printStackTrace();
+//                                }
+//                            }
+//                        });
 
+//                        documentView.setImageBitmap(pic);
+                        scanView.setBackground(new BitmapDrawable(getResources(),rotateBitmap(pic,90)));
                         break;
                     case UNKNOWN:
                         throw new Exception();
@@ -169,5 +219,21 @@ public class ScanActivity extends AppCompatActivity {
         o2.inSampleSize = scale;
         return BitmapFactory.decodeStream(getContentResolver().openInputStream(selectedImage), null, o2);
 
+    }
+
+    public String getRealPathFromURI(Uri contentUri) {
+        String[] proj = { MediaStore.Images.Media.DATA };
+        Cursor cursor = managedQuery(contentUri, proj, null, null, null);
+        int column_index = cursor
+                .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+        cursor.moveToFirst();
+        return cursor.getString(column_index);
+    }
+
+    private Bitmap rotateBitmap(Bitmap source, float angle)
+    {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(angle);
+        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
     }
 }
