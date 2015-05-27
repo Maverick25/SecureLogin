@@ -12,33 +12,26 @@
         android:layout_height="wrap_content"
         android:layout_width="match_parent" />
 
-    <HorizontalScrollView
-        android:id="@+id/scrollView_tabs"
+    <include
+        android:id="@+id/total_info_bar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:scrollbars="none"
         android:layout_below="@id/toolbar_actionbar"
-        android:paddingStart="70dp"
-        android:paddingLeft="70dp"
-        android:background="@color/primary">
+        android:layout_height="@dimen/toolbar_extension_height"
+        android:layout_gravity="bottom"
+        layout="@layout/total_tab"/>
 
-        <agency.alterway.edillion.views.widgets.SlidingTabLayout
-            android:id="@+id/tabs"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
 
-    </HorizontalScrollView>
-
-    <RelativeLayout
-        android:layout_below="@id/scrollView_tabs"
+    <FrameLayout
+        android:id="@+id/container"
+        android:layout_below="@id/total_info_bar"
         android:layout_height="match_parent"
         android:layout_width="match_parent">
 
-        <android.support.v4.view.ViewPager
-            android:id="@+id/pager_documents"
-            android:layout_height="match_parent"
-            android:layout_width="match_parent" />
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/document_recycler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
 
         <com.getbase.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_addDocument"
@@ -51,9 +44,7 @@
             android:layout_marginRight="16dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true" />
+            android:layout_gravity="bottom|end"/>
 
         <com.getbase.floatingactionbutton.FloatingActionsMenu
             android:visibility="gone"
@@ -65,11 +56,8 @@
             android:layout_marginBottom="16dp"
             fab:fab_addButtonColorNormal="@color/accent"
             fab:fab_addButtonColorPressed="@color/accent_pressed"
-            fab:fab_addButtonPlusIconColor="@color/fab_material_white"
+            fab:fab_addButtonPlusIconColor="@color/white_fab"
             fab:fab_addButtonSize="mini"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
             fab:fab_labelStyle="@style/menu_labels_style"
             fab:fab_labelsPosition="left"
             fab:fab_addButtonStrokeVisible="true"
@@ -79,45 +67,22 @@
                 android:id="@+id/fab_cameraRequest"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                fab:fab_colorNormal="@color/fab_material_indigo_500"
+                fab:fab_colorNormal="@color/indigo"
                 fab:fab_title="@string/fab_camera_request"
-                fab:fab_colorPressed="@color/fab_material_indigo_900"
+                fab:fab_colorPressed="@color/indigo_pressed"
                 app:fab_icon="@drawable/ic_action_camera"/>
             <com.getbase.floatingactionbutton.FloatingActionButton
                 android:id="@+id/fab_selectPicture"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                fab:fab_colorNormal="@color/fab_material_deep_orange_500"
+                fab:fab_colorNormal="@color/deep_orange"
                 fab:fab_title="@string/fab_select_picture"
-                fab:fab_colorPressed="@color/fab_material_deep_orange_900"
+                fab:fab_colorPressed="@color/deep_orange_pressed"
                 app:fab_icon="@drawable/ic_action_pics"/>
 
         </com.getbase.floatingactionbutton.FloatingActionsMenu>
 
-    </RelativeLayout>
-
-    <com.software.shell.fab.ActionButton
-        android:id="@+id/fab_approve"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="-20dp"
-        fab:type="MINI"
-        fab:button_color="@color/accent"
-        fab:button_colorPressed="@color/accent_pressed"
-        fab:image="@drawable/ic_action_approve"
-        fab:image_size="24dp"
-        fab:shadow_color="#757575"
-        fab:shadow_radius="1.0dp"
-        fab:shadow_xOffset="0.5dp"
-        fab:shadow_yOffset="1.0dp"
-        fab:stroke_color="@color/fab_material_blue_grey_500"
-        fab:stroke_width="1.0dp"
-        android:layout_alignBottom="@id/scrollView_tabs"
-        android:layout_alignParentLeft= "true"
-        android:layout_alignParentStart="true"
-        />
+    </FrameLayout>
 
 
 </RelativeLayout>

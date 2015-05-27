@@ -9,12 +9,15 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.ViewSwitcher;
 
 import com.getbase.floatingactionbutton.FloatingActionButton;
 
@@ -22,23 +25,31 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 
 import agency.alterway.edillion.R;
-import agency.alterway.edillion.fragments.DescriptionFragment;
 import agency.alterway.edillion.utils.ScanMode;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import butterknife.OnClick;
 
 public class ScanActivity extends AppCompatActivity {
 
     private ScanMode mode;
-    private DescriptionFragment descriptionFragment;
+    private Bitmap documentPicture;
     private Uri imageUri;
+    private static final int DESCRIPTION_SCREEN = 0;
+    private static final int DOCUMENT_VIEW_SCREEN = 1;
 
-    @InjectView(R.id.toolbar_actionbar)
-    Toolbar mToolbar;
+    @InjectView(R.id.toolbar_bottom)
+    Toolbar bottomToolbar;
+    @InjectView(R.id.switcher_scan)
+    ViewSwitcher switcher;
     @InjectView(R.id.fab_approveDocument)
     FloatingActionButton fabApproveDocument;
     @InjectView(R.id.scan_review)
     RelativeLayout scanView;
+    @InjectView(R.id.imageView_document)
+    ImageView documentView;
+    @InjectView(R.id.add_or_delete)
+    ImageButton addOrDeleteButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,46 +62,41 @@ public class ScanActivity extends AppCompatActivity {
 
         mode = ScanMode.fromInt(getIntent().getIntExtra(getString(R.string.scan_selectedMode), -1));
 
-        setScreen(savedInstanceState);
+        setScreen();
     }
 
-    private void setScreen(Bundle savedInstanceState)
+    private void setScreen()
     {
         try
         {
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+            switch(mode)
             {
-//                if (null == savedInstanceState) {
-//                    getFragmentManager().beginTransaction()
-//                            .replace(R.id.container, CameraFragment.newInstance())
-//                            .commit();
-//                }
-//            }
-//            else
-//            {
-                switch(mode)
-                {
-                    case CAMERA_REQUEST:
-//                        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-//                        startActivityForResult(cameraIntent, getResources().getInteger(R.integer.camera_request));
-                        ContentValues values = new ContentValues();
-                        values.put(MediaStore.Images.Media.TITLE, "New Picture");
-                        values.put(MediaStore.Images.Media.DESCRIPTION, "From your Camera");
-                        imageUri = getContentResolver().insert(
-                                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-                        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                        intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-                        startActivityForResult(intent, getResources().getInteger(R.integer.camera_request));
-                        break;
-                    case SELECT_PICTURE:
-                        Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
-                        photoPickerIntent.setType("image/*");
-                        startActivityForResult(photoPickerIntent, getResources().getInteger(R.integer.selected_picture));
-                        break;
-                    case UNKNOWN:
-                        throw new Exception();
-                }
+                case CAMERA_REQUEST:
+                    ContentValues values = new ContentValues();
+                    values.put(MediaStore.Images.Media.TITLE, "New Picture");
+                    values.put(MediaStore.Images.Media.DESCRIPTION, "From your Camera");
+                    imageUri = getContentResolver().insert(
+                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                    startActivityForResult(intent, getResources().getInteger(R.integer.camera_request));
+                    break;
+                case SELECT_PICTURE:
+                    Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+                    photoPickerIntent.setType("image/*");
+                    startActivityForResult(photoPickerIntent, getResources().getInteger(R.integer.selected_picture));
+                    break;
+                case VIEW_PHOTO:
+                    int resource = getIntent().getIntExtra(getString(R.string.scan_photoToView),0);
+                    scanView.setBackgroundResource(resource);
+                    documentView.setImageResource(resource);
+
+                    addOrDeleteButton.setImageResource(R.drawable.delete);
+                    break;
+                case UNKNOWN:
+                    throw new Exception();
             }
+
         }
         catch(Exception e)
         {
@@ -101,8 +107,15 @@ public class ScanActivity extends AppCompatActivity {
     private void setUpToolbar()
     {
         // Creating The Toolbar and setting it as the Toolbar for the activity
-        setSupportActionBar(mToolbar);
+        setSupportActionBar(bottomToolbar);
         setTitle("Description");
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_scan, menu);
+        return true;
     }
 
     @Override
@@ -110,49 +123,21 @@ public class ScanActivity extends AppCompatActivity {
     {
         try
         {
+            switcher.setDisplayedChild(DESCRIPTION_SCREEN);
             if(resultCode == RESULT_OK)
             {
                 ByteArrayOutputStream stream;
                 final byte[] byteArray;
 
-//                descriptionFragment = DescriptionFragment.newInstance();
-
                 mode = ScanMode.fromInt(requestCode);
                 switch (mode)
                 {
                     case CAMERA_REQUEST:
-//                        Bitmap photo = (Bitmap) data.getExtras().get("data");
-//
-//                        stream = new ByteArrayOutputStream();
-//                        photo.compress(Bitmap.CompressFormat.PNG, 100, stream);
-//                        byteArray = stream.toByteArray();
-
-                        try {
-                            Bitmap thumbnail = MediaStore.Images.Media.getBitmap(
-                                    getContentResolver(), imageUri);
-                            scanView.setBackground(new BitmapDrawable(getResources(), rotateBitmap(thumbnail,90)));
-                            String imageurl = getRealPathFromURI(imageUri);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-
-//                        new Handler().post(new Runnable() {
-//                            public void run() {
-//                                try {
-//                                    descriptionFragment = descriptionFragment.setUp(byteArray);
-//                                    getSupportFragmentManager()
-//                                            .beginTransaction()
-//                                            .replace(R.id.pager_scanFragments, descriptionFragment)
-//                                            .commit();
-//                                } catch (NullPointerException e) {
-//                                    e.printStackTrace();
-//                                }
-//                            }
-//                        });
-
-//                        documentView.setImageBitmap(photo);
-
-
+                        documentPicture = MediaStore.Images.Media.getBitmap(
+                                getContentResolver(), imageUri);
+                        documentPicture = rotateBitmap(documentPicture,90);
+                        scanView.setBackground(new BitmapDrawable(getResources(),documentPicture));
+                        documentView.setImageBitmap(documentPicture);
                         break;
                     case SELECT_PICTURE:
                         Uri selectedImage = data.getData();
@@ -223,7 +208,7 @@ public class ScanActivity extends AppCompatActivity {
 
     public String getRealPathFromURI(Uri contentUri) {
         String[] proj = { MediaStore.Images.Media.DATA };
-        Cursor cursor = managedQuery(contentUri, proj, null, null, null);
+        Cursor cursor = getContentResolver().query(contentUri, proj, null, null, null);
         int column_index = cursor
                 .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
         cursor.moveToFirst();
@@ -235,5 +220,33 @@ public class ScanActivity extends AppCompatActivity {
         Matrix matrix = new Matrix();
         matrix.postRotate(angle);
         return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
+    }
+
+    @OnClick(R.id.scan_review)
+    void showFullDocument()
+    {
+        switcher.setInAnimation(this,R.anim.fade_in);
+        switcher.setOutAnimation(this,R.anim.fade_out);
+        switcher.setDisplayedChild(DOCUMENT_VIEW_SCREEN);
+    }
+
+    @OnClick(R.id.imageView_document)
+    void showDescriptionView()
+    {
+        switcher.setInAnimation(this,R.anim.fade_in);
+        switcher.setOutAnimation(this,R.anim.fade_out);
+        switcher.setDisplayedChild(DESCRIPTION_SCREEN);
+    }
+
+    @OnClick(R.id.add_or_delete)
+    void addOrDeleteAction()
+    {
+
+    }
+
+    @OnClick(R.id.go_back)
+    void goBackAction()
+    {
+        finish();
     }
 }

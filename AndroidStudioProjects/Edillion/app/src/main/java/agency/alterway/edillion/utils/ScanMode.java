@@ -8,7 +8,7 @@ public enum ScanMode
     /**
      * Type Of Mode for AbsenceActivity
      */
-    CAMERA_REQUEST(42), SELECT_PICTURE(41), UNKNOWN(0);
+    CAMERA_REQUEST(42), SELECT_PICTURE(41), VIEW_PHOTO(40), UNKNOWN(0);
 
     private int value;
 
@@ -28,6 +28,8 @@ public enum ScanMode
                 return CAMERA_REQUEST;
             case 41:
                 return SELECT_PICTURE;
+            case 40:
+                return VIEW_PHOTO;
             default:
                 return UNKNOWN;
         }

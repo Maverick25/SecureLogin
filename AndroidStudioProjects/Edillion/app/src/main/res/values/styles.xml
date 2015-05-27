@@ -13,9 +13,19 @@
     </style>
 
     <style name="AppTheme.ScanTheme" parent="AppTheme">
+        <item name="android:actionMenuTextColor">@color/primary_dark</item>
     </style>
 
     <style name="AppTheme.LoginTheme" parent="AppTheme">
     </style>
+
+    <style name="TimeEntryTitle" parent="TextAppearance.AppCompat.Title">
+        <item name="android:singleLine">true</item>
+    </style>
+
+    <style name="TimeEntryDesc" parent="TextAppearance.AppCompat.Subhead">
+        <item name="android:singleLine">true</item>
+    </style>
+
 
 </resources>

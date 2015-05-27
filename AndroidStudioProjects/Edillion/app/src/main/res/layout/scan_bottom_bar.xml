@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.Toolbar
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/toolbar_height"
+    android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+    android:minHeight="?attr/actionBarSize"
+    android:clickable="true"
+    android:background="@color/primary"
+    app:popupTheme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+
+    app:contentInsetStart="16dp"
+    app:contentInsetEnd="0dp"
+    app:contentInsetLeft="16dp"
+    app:contentInsetRight="0dp"
+    android:clipToPadding="false"
+    tools:context=".activities.ScanActivity">
+    <!-- ThemeOVerlay Makes sure the text and items are using solid colors-->
+
+</android.support.v7.widget.Toolbar>

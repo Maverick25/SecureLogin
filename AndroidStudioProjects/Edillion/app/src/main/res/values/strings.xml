@@ -3,12 +3,22 @@
 
     <!-- Menu -->
     <string name="menu_logout">Logout</string>
+    <string name="menu_deleteAll">Delete All</string>
+    <string name="menu_deleteSelected">Delete Selected</string>
+    <string name="menu_approveAll">Approve All</string>
+    <string name="menu_approveSelected">Approve Selected</string>
+    <string name="menu_selectAll">Select All</string>
+    <string name="menu_selectNone">Select None</string>
+
+    <string name="total_documents">Total Documents</string>
+    
     <string name="title_activity_scan">ScanActivity</string>
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
 
     <string name="scan_selectedMode">selected_mode</string>
+    <string name="scan_photoToView">photo_to_view</string>
 
     <string name="fab_select_picture">Select Picture</string>
     <string name="fab_camera_request">Take Photo</string>

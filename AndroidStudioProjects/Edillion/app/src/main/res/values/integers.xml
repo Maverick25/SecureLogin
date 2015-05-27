@@ -3,4 +3,5 @@
     <integer name="loginId" format="integer">100</integer>
     <integer name="camera_request">42</integer>
     <integer name="selected_picture">41</integer>
+    <integer name="view_photo">40</integer>
 </resources>
