@@ -19,6 +19,7 @@ import java.util.List;
 
 import agency.alterway.edillion.EdillionApplication;
 import agency.alterway.edillion.R;
+import agency.alterway.edillion.controllers.ScanController;
 import agency.alterway.edillion.models.DocumentFile;
 import agency.alterway.edillion.utils.PressMode;
 import butterknife.ButterKnife;
@@ -86,9 +87,11 @@ public class DocumentsAdapter extends RecyclerView.Adapter<DocumentsAdapter.View
                 viewHolder.checkDelete.setChecked(true);
                 break;
         }
-        viewHolder.description.setText(file.getDescription());
-        viewHolder.imgThumbnail.setImageResource(file.getThumbnail());
-
+        if(file.getDescription() != null)
+        {
+            viewHolder.description.setText(file.getDescription());
+        }
+        ScanController.getInstance().setImageOnView(file.getThumbnail(),viewHolder.imgThumbnail);
         viewHolder.detailsLayout.setBackgroundResource(R.color.material_blue_grey_800);
 
     }

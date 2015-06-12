@@ -1,10 +1,10 @@
 package agency.alterway.edillion.controllers;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import agency.alterway.edillion.R;
+import agency.alterway.edillion.EdillionApplication;
 import agency.alterway.edillion.controllers.injections.MainInjection;
+import agency.alterway.edillion.db.DatabaseHandler;
 import agency.alterway.edillion.models.DocumentFile;
 
 /**
@@ -13,11 +13,11 @@ import agency.alterway.edillion.models.DocumentFile;
 public class MainController
 {
     private static MainController instance;
-    private MainInjection injection;
+    private static MainInjection injection;
 
     private MainController(MainInjection injection)
     {
-        this.injection = injection;
+        MainController.injection = injection;
     }
 
     public static MainController getInstance(MainInjection injection)
@@ -26,6 +26,10 @@ public class MainController
         {
             instance = new MainController(injection);
         }
+        else
+        {
+            MainController.injection = injection;
+        }
         return instance;
     }
 
@@ -33,21 +37,7 @@ public class MainController
     {
         try
         {
-            List<DocumentFile> documents = new ArrayList<>();
-            DocumentFile species = new DocumentFile();
-            species.setDescription("Internet");
-            species.setThumbnail(R.drawable.bill1);
-            documents.add(species);
-
-            species = new DocumentFile();
-            species.setDescription("Electricity");
-            species.setThumbnail(R.drawable.bill2);
-            documents.add(species);
-
-            species = new DocumentFile();
-            species.setDescription("Waste");
-            species.setThumbnail(R.drawable.bill3);
-            documents.add(species);
+            List<DocumentFile> documents = DatabaseHandler.getInstance(EdillionApplication.getAppContext()).getAllDocuments();
 
             injection.onReceivedDocuments(documents);
         }
@@ -57,4 +47,5 @@ public class MainController
         }
 
     }
+
 }

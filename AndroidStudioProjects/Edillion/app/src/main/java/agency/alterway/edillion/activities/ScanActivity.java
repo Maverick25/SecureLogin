@@ -1,6 +1,5 @@
 package agency.alterway.edillion.activities;
 
-import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.database.Cursor;
@@ -14,6 +13,8 @@ import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -25,34 +26,42 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 
 import agency.alterway.edillion.R;
+import agency.alterway.edillion.controllers.ScanController;
+import agency.alterway.edillion.controllers.injections.ScanInjection;
+import agency.alterway.edillion.db.DatabaseHandler;
+import agency.alterway.edillion.models.DocumentFile;
 import agency.alterway.edillion.utils.ScanMode;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 
-public class ScanActivity extends AppCompatActivity {
+public class ScanActivity extends AppCompatActivity implements ScanInjection
+{
 
     private ScanMode mode;
-    private Bitmap documentPicture;
-    private Uri imageUri;
-    private static final int DESCRIPTION_SCREEN = 0;
+    private Bitmap   documentPicture;
+    private Uri      imageUri;
+    private static final int DESCRIPTION_SCREEN   = 0;
     private static final int DOCUMENT_VIEW_SCREEN = 1;
 
+    private EditText descriptionField;
+
     @InjectView(R.id.toolbar_bottom)
-    Toolbar bottomToolbar;
+    Toolbar              bottomToolbar;
     @InjectView(R.id.switcher_scan)
-    ViewSwitcher switcher;
+    ViewSwitcher         switcher;
     @InjectView(R.id.fab_approveDocument)
     FloatingActionButton fabApproveDocument;
     @InjectView(R.id.scan_review)
-    RelativeLayout scanView;
+    RelativeLayout       scanView;
     @InjectView(R.id.imageView_document)
-    ImageView documentView;
+    ImageView            documentView;
     @InjectView(R.id.add_or_delete)
-    ImageButton addOrDeleteButton;
+    ImageButton          addOrDeleteButton;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_scan);
@@ -69,29 +78,21 @@ public class ScanActivity extends AppCompatActivity {
     {
         try
         {
-            switch(mode)
+            switch (mode)
             {
+                case VIEW_PHOTO:
+                    addOrDeleteButton.setImageResource(R.drawable.delete);
                 case CAMERA_REQUEST:
-                    ContentValues values = new ContentValues();
-                    values.put(MediaStore.Images.Media.TITLE, "New Picture");
-                    values.put(MediaStore.Images.Media.DESCRIPTION, "From your Camera");
-                    imageUri = getContentResolver().insert(
-                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-                    startActivityForResult(intent, getResources().getInteger(R.integer.camera_request));
+                    long id = getIntent().getLongExtra(getString(R.string.scan_photoToView),-1);
+                    DocumentFile document = DatabaseHandler.getInstance(this).getDocument(id);
+
+                    ScanController.getInstance(this).setImageOnView(document.getThumbnail(), scanView);
+                    ScanController.getInstance(this).setImageOnView(document.getThumbnail(), documentView);
                     break;
                 case SELECT_PICTURE:
                     Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
                     photoPickerIntent.setType("image/*");
                     startActivityForResult(photoPickerIntent, getResources().getInteger(R.integer.selected_picture));
-                    break;
-                case VIEW_PHOTO:
-                    int resource = getIntent().getIntExtra(getString(R.string.scan_photoToView),0);
-                    scanView.setBackgroundResource(resource);
-                    documentView.setImageResource(resource);
-
-                    addOrDeleteButton.setImageResource(R.drawable.delete);
                     break;
                 case UNKNOWN:
                     throw new Exception();
@@ -108,7 +109,11 @@ public class ScanActivity extends AppCompatActivity {
     {
         // Creating The Toolbar and setting it as the Toolbar for the activity
         setSupportActionBar(bottomToolbar);
-        setTitle("Description");
+
+        descriptionField = (EditText) bottomToolbar.findViewById(R.id.bottom_field);
+        descriptionField.setText("Description");
+
+        setTitle(descriptionField.getText().toString());
     }
 
     @Override
@@ -226,8 +231,13 @@ public class ScanActivity extends AppCompatActivity {
     void showFullDocument()
     {
         switcher.setInAnimation(this,R.anim.fade_in);
-        switcher.setOutAnimation(this,R.anim.fade_out);
+        switcher.setOutAnimation(this, R.anim.fade_out);
         switcher.setDisplayedChild(DOCUMENT_VIEW_SCREEN);
+        if(descriptionField.getVisibility() == View.VISIBLE)
+        {
+            descriptionField.setVisibility(View.GONE);
+            setTitle(descriptionField.getText().toString());
+        }
     }
 
     @OnClick(R.id.imageView_document)
@@ -249,4 +259,12 @@ public class ScanActivity extends AppCompatActivity {
     {
         finish();
     }
+
+    @OnClick(R.id.toolbar_bottom)
+    void changeDescription()
+    {
+        setTitle("");
+        descriptionField.setVisibility(View.VISIBLE);
+    }
+
 }

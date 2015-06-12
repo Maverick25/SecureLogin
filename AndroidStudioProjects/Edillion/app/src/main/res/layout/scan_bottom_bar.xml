@@ -17,6 +17,15 @@
     app:contentInsetRight="0dp"
     android:clipToPadding="false"
     tools:context=".activities.ScanActivity">
+
+    <EditText
+        android:id="@+id/bottom_field"
+        android:inputType="text"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:ems="15"
+        android:textColor="@color/white"/>
     <!-- ThemeOVerlay Makes sure the text and items are using solid colors-->
 
 </android.support.v7.widget.Toolbar>

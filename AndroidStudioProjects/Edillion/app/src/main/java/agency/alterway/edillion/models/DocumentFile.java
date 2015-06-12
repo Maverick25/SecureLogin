@@ -11,22 +11,20 @@ public class DocumentFile implements Parcelable
 {
     private long id;
     private String description;
-    private boolean isApproved;
-    private int thumbnail;
+    private byte[] thumbnail;
 
     public DocumentFile() {}
 
-    public DocumentFile(long id, String description, boolean isApproved)
+    public DocumentFile(long id, String description, byte[] thumbnail)
     {
         this.id = id;
         this.description = description;
-        this.isApproved = isApproved;
+        this.thumbnail = thumbnail;
     }
 
     public DocumentFile(Parcel in)
     {
         this.id = in.readLong();
-        this.isApproved = in.readByte() == 1;
         this.description = in.readString();
     }
 
@@ -34,11 +32,11 @@ public class DocumentFile implements Parcelable
         return id;
     }
 
-    public int getThumbnail() {
+    public byte[] getThumbnail() {
         return thumbnail;
     }
 
-    public void setThumbnail(int thumbnail) {
+    public void setThumbnail(byte[] thumbnail) {
         this.thumbnail = thumbnail;
     }
 
@@ -54,14 +52,6 @@ public class DocumentFile implements Parcelable
         this.description = description;
     }
 
-    public boolean isApproved() {
-        return isApproved;
-    }
-
-    public void setIsApproved(boolean isApproved) {
-        this.isApproved = isApproved;
-    }
-
     @Override
     public int describeContents() {
         return 0;
@@ -71,7 +61,6 @@ public class DocumentFile implements Parcelable
     public void writeToParcel(Parcel out, int flags)
     {
         out.writeLong(id);
-        out.writeByte((byte) (isApproved ? 1 : 0));
         out.writeString(description);
     }
 

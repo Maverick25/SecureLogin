@@ -24,4 +24,9 @@
     <string name="fab_camera_request">Take Photo</string>
     <string name="title_activity_document">DocumentActivity</string>
     <string name="title_activity_image_manipulations">ImageManipulationsActivity</string>
+
+    <string name="error_no_connection">Internet connection has been lost!</string>
+    <string name="error_auth_failure">Authorization failed!</string>
+    <string name="error_network">Network Error</string>
+    <string name="error_parse">Unexpected response from the Server!</string>
 </resources>

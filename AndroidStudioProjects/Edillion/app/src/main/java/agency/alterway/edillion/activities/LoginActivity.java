@@ -4,13 +4,17 @@ import android.app.LoaderManager.LoaderCallbacks;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -20,10 +24,16 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 
+import com.afollestad.materialdialogs.MaterialDialog;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import agency.alterway.edillion.R;
+import agency.alterway.edillion.controllers.LoginController;
+import agency.alterway.edillion.controllers.injections.LoginInjection;
+import agency.alterway.edillion.models.Customer;
+import agency.alterway.edillion.models.User;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
@@ -32,19 +42,17 @@ import butterknife.OnClick;
 /**
  * A login screen that offers login via email/password.
  */
-public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
+public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor>,LoginInjection
+{
 
-    /**
-     * A dummy authentication store containing known user names and passwords.
-     * TODO: remove after connecting to a real authentication system.
-     */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "foo@example.com:hello", "bar@example.com:world"
-    };
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
-    private UserLoginTask authorizationTask = null;
+    private AuthorizationTask authorizationTask = null;
+
+    private SharedPreferences preferences;
+    private String email;
+    private String password;
 
     private static final int LOGIN_FORM = 0;
     private static final int SIGNUP_FORM = 1;
@@ -64,7 +72,31 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         setContentView(R.layout.activity_login);
         ButterKnife.inject(this);
 
-        loginFlipper.setDisplayedChild(LOGIN_FORM);
+        preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+        // if already logged in and preselected RememberMe switch, this leads straight to login
+        // with the persistent credentials.
+        if (preferences.getBoolean(getString(R.string.tag_save_login), false))
+        {
+            String email = preferences.getString(getString(R.string.tag_email), "");
+            String password = preferences.getString(getString(R.string.tag_password), "");
+            doLogin(email,password);
+        }
+        else
+        {
+            loginFlipper.setDisplayedChild(LOGIN_FORM);
+        }
+
+
+        // if just logged out, fill text fields with the information of previously logged in user
+        if (preferences.getBoolean(getString(R.string.tag_logout), false))
+        {
+            emailView.setText(preferences.getString(getString(R.string.tag_email), ""));
+            passwordField.setText(preferences.getString(getString(R.string.tag_password), ""));
+            preferences.edit().clear().apply();
+        }
+
+//        testLogin();
 
         populateAutoComplete();
 
@@ -104,7 +136,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     /**
      * Setting of animations for animating forward within the Flipper.
-     * @param nextView
+     * @param nextView = registration view
      */
     private void animateForward(int nextView)
     {
@@ -115,7 +147,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     /**
      * Setting of animations for animating forward within the Flipper.
-     * @param previousView
+     * @param previousView = login view
      */
     private void animateBackwards(int previousView)
     {
@@ -174,9 +206,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         } else {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
-            loginFlipper.setDisplayedChild(PROGRESS_FORM);
-            authorizationTask = new UserLoginTask(email, password);
-            authorizationTask.execute((Void) null);
+            doLogin(email,password);
         }
     }
 
@@ -187,7 +217,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     private boolean isPasswordValid(String password) {
         //TODO: Replace this with your own logic
-        return password.length() > 4;
+        return password.length() > 8;
     }
 
     @Override
@@ -244,65 +274,167 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         emailView.setAdapter(adapter);
     }
 
+    private void doLogin(String email, String password)
+    {
+        loginFlipper.setDisplayedChild(PROGRESS_FORM);
+        authorizationTask = new AuthorizationTask();
+        authorizationTask.execute(email, password);
+    }
+
     /**
-     * Represents an asynchronous login/registration task used to authenticate
-     * the user.
+     * was used to test login
      */
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
+    private void testLogin()
+    {
+        String email = "rigan.marek@gmail.com";
+        String password = "w84mynewPW";
 
-        private final String mEmail;
-        private final String mPassword;
+        LoginController.getInstance(this).doAuthorization(email,password);
+    }
 
-        UserLoginTask(String email, String password) {
-            mEmail = email;
-            mPassword = password;
+    /**
+     * Timeout Warning after 30 seconds
+     */
+    private void showWarningDialog()
+    {
+        MaterialDialog dialog = new MaterialDialog.Builder(this)
+                .positiveText(getString(R.string.dialog_continue))
+                .negativeText(getString(R.string.dialog_cancel))
+                .callback(new MaterialDialog.ButtonCallback()
+                {
+                    @Override
+                    public void onNegative(MaterialDialog dialog)
+                    {
+                        if (authorizationTask != null && authorizationTask.getStatus() != AsyncTask.Status.FINISHED)
+                        {
+                            authorizationTask.cancel(true);
+                        }
+                    }
+                })
+                .title(getString(R.string.title_still_processing))
+                .content(getString(R.string.dialog_still_processing_text))
+                .build();
+
+        dialog.show();
+    }
+
+    /**
+     * Method that creates and shows an Error Dialog
+     * after an error occurrence.
+     */
+    private void showErrorDialog(String message)
+    {
+        MaterialDialog dialog = new MaterialDialog.Builder(this)
+                .neutralText(getString(R.string.dialog_dismiss))
+                .title(getString(R.string.error))
+                .content(message)
+                .build();
+
+        dialog.show();
+    }
+
+    @Override
+    public void onSuccessfulLogin(User user, Customer customer)
+    {
+        if(user != null && customer != null)
+        {
+            Log.v("Authorization Test"," = SUCCESS = "+user.toString()+" and "+customer.toString());
+        }
+        else
+        {
+            Log.e("Authorization Test"," = FAILURE = user or customer is NULL");
+        }
+
+        // if rememberSwitch is checked, save all the credentials into persistent memory
+        if (!preferences.getBoolean(getString(R.string.tag_save_login), false))
+        {
+            SharedPreferences.Editor edit = preferences.edit();
+            edit.putBoolean(getString(R.string.tag_save_login), true);
+            edit.putString(getString(R.string.tag_email), email);
+            edit.putString(getString(R.string.tag_password), password);
+            edit.apply();
+        }
+
+        Intent goToBase = new Intent(LoginActivity.this, MainActivity.class);
+        goToBase.putExtra(getString(R.string.tag_current_user), user);
+        startActivity(goToBase);
+        finish();
+        overridePendingTransition(R.anim.push_up_in, R.anim.push_up_out);
+    }
+
+    @Override
+    public void onErrorLogin(String message)
+    {
+        if (message != null)
+        {
+            Log.e("Authorization Test"," = FAILURE = message: "+message);
+        }
+        else
+        {
+            Log.e("Authorization Test"," = FAILURE = no message");
+        }
+
+        if (message.startsWith(getString(R.string.text_wrong)))
+        {
+            emailView.setError(getString(R.string.error_wrong_credentials_short));
+            passwordField.setError(getString(R.string.error_wrong_credentials_short));
+            emailView.requestFocus();
+        }
+
+        showErrorDialog(message);
+
+        authorizationTask = null;
+        loginFlipper.setDisplayedChild(LOGIN_FORM);
+    }
+
+    /**
+     * Task for deploying the authorization process implementing the proper controller and its injection.
+     */
+    private class AuthorizationTask extends AsyncTask<String, Void, Boolean>
+    {
+        @Override
+        protected void onPreExecute()
+        {
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    try
+                    {
+                        if (authorizationTask.getStatus() == AsyncTask.Status.RUNNING)
+                        {
+                            showWarningDialog();
+                        }
+                    }
+                    catch (NullPointerException e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+            }, 30000);
         }
 
         @Override
-        protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
+        protected Boolean doInBackground(String... params)
+        {
+            try
+            {
+                email = params[0];
+                password = params[1];
 
-            try {
-                // Simulate network access.
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
+                LoginController.getInstance(LoginActivity.this).doAuthorization(email, password);
+                return true;
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
                 return false;
             }
-
-            for (String credential : DUMMY_CREDENTIALS) {
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mEmail)) {
-                    // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
-                }
-            }
-
-            // TODO: register the new account here.
-            return true;
         }
 
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            authorizationTask = null;
-
-            if (success) {
-                Intent goToMain = new Intent(LoginActivity.this,MainActivity.class);
-                startActivity(goToMain);
-                finish();
-                overridePendingTransition(R.anim.push_up_in, R.anim.push_up_out);
-
-            } else {
-                passwordField.setError(getString(R.string.error_incorrect_password));
-                passwordField.requestFocus();
-                loginFlipper.setDisplayedChild(LOGIN_FORM);
-            }
-        }
-
-        @Override
-        protected void onCancelled() {
-            authorizationTask = null;
-            loginFlipper.setDisplayedChild(LOGIN_FORM);
-        }
     }
+
 }
 

@@ -1,7 +1,10 @@
 package agency.alterway.edillion.activities;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -13,15 +16,18 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import agency.alterway.edillion.R;
 import agency.alterway.edillion.controllers.MainController;
 import agency.alterway.edillion.controllers.injections.MainInjection;
 import agency.alterway.edillion.models.DocumentFile;
+import agency.alterway.edillion.models.User;
 import agency.alterway.edillion.utils.PressMode;
 import agency.alterway.edillion.views.adapters.DocumentsAdapter;
 import butterknife.ButterKnife;
@@ -37,8 +43,10 @@ public class MainActivity extends AppCompatActivity implements DocumentsAdapter.
     private CheckBox selectAllBox;
     private TextView totalNumber;
 
+    public static User currentUser;
     private DocumentsAdapter adapter;
     private List<DocumentFile> documentFiles;
+    private SharedPreferences preferences;
 
     @InjectView(R.id.toolbar_actionbar)
     Toolbar              mToolbar;
@@ -54,11 +62,26 @@ public class MainActivity extends AppCompatActivity implements DocumentsAdapter.
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+        currentUser = getIntent().getParcelableExtra(getString(R.string.tag_current_user));
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
         super.onCreate(savedInstanceState);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
         ButterKnife.inject(this);
 
         setUpToolbar();
+
+        documentsView.setHasFixedSize(true);
+
+        // The number of Columns
+        RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(this, 2);
+        documentsView.setLayoutManager(mLayoutManager);
+
+        documentFiles = new ArrayList<>();
+
+        adapter = new DocumentsAdapter(this,documentFiles);
+        documentsView.setAdapter(adapter);
 
         selectAllBox = (CheckBox) totalInfo.findViewById(R.id.all_check);
         totalNumber = (TextView) totalInfo.findViewById(R.id.count_value);
@@ -90,11 +113,18 @@ public class MainActivity extends AppCompatActivity implements DocumentsAdapter.
 
 //        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
 //        {
-        fabAddDocument.setVisibility(View.GONE);
-        faMenu.setVisibility(View.VISIBLE);
+//        fabAddDocument.setVisibility(View.GONE);
+//        faMenu.setVisibility(View.VISIBLE);
 
         fetchDocuments();
 //        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        super.onActivityResult(requestCode, resultCode, data);
+        MainController.getInstance(this).getDocumentFiles();
     }
 
     private void setUpToolbar()
@@ -105,9 +135,9 @@ public class MainActivity extends AppCompatActivity implements DocumentsAdapter.
         mToolbar.setPadding(getResources().getDimensionPixelOffset(R.dimen.edge_margin), 0, 0, 0);
     }
 
-    private void updateTotalBar(List<DocumentFile> documents)
+    private void updateTotalBar()
     {
-        totalNumber.setText(String.valueOf(documents.size()));
+        totalNumber.setText(String.valueOf(documentFiles.size()));
     }
 
 
@@ -144,7 +174,15 @@ public class MainActivity extends AppCompatActivity implements DocumentsAdapter.
 
                     return true;
                 case R.id.menu_logout:
+                    SharedPreferences.Editor edit = preferences.edit();
+                    edit.putBoolean(getString(R.string.tag_save_login), false);
+                    edit.putBoolean(getString(R.string.tag_logout), true);
+                    edit.apply();
 
+                    Intent logout = new Intent(this, LoginActivity.class);
+                    startActivity(logout);
+                    finish();
+                    overridePendingTransition(R.anim.push_up_in, R.anim.push_up_out);
                     return true;
                 default:
                     throw new Exception();
@@ -157,11 +195,26 @@ public class MainActivity extends AppCompatActivity implements DocumentsAdapter.
         }
     }
 
+    /**
+     * Method that creates and shows an Error Dialog
+     * after an error occurrence.
+     */
+    private void showErrorDialog(String message)
+    {
+        MaterialDialog dialog = new MaterialDialog.Builder(this)
+                .neutralText(getString(R.string.dialog_dismiss))
+                .title(getString(R.string.error))
+                .content(message)
+                .build();
+
+        dialog.show();
+    }
+
     @OnClick(R.id.fab_addDocument)
     void addDocument()
     {
-        Intent goToScan = new Intent(MainActivity.this,ScanActivity.class);
-        startActivity(goToScan);
+        Intent goToScan = new Intent(MainActivity.this,CameraActivity.class);
+        startActivityForResult(goToScan,0);
     }
 
     @OnClick(R.id.fab_selectPicture)
@@ -215,21 +268,15 @@ public class MainActivity extends AppCompatActivity implements DocumentsAdapter.
     {
         documentFiles = documents;
 
-        documentsView.setHasFixedSize(true);
-
-        // The number of Columns
-        RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(this, 2);
-        documentsView.setLayoutManager(mLayoutManager);
-
         adapter = new DocumentsAdapter(this,documentFiles);
         documentsView.setAdapter(adapter);
 
-        updateTotalBar(documentFiles);
+        updateTotalBar();
     }
 
     @Override
     public void onErrorMain(String message)
     {
-
+        showErrorDialog(message);
     }
 }

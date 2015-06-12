@@ -1,6 +1,7 @@
 <resources>
     <!-- Titles -->
     <string name="title_activity_login">Login</string>
+    <string name="title_still_processing">Still Processing</string>
 
     <!-- Prompts -->
     <string name="prompt_email">Email</string>
@@ -15,16 +16,34 @@
     <string name="action_sign_up">Sign up</string>
 
     <!-- Errors -->
+    <string name="error">Error</string>
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
+    <string name="error_wrong_credentials">Wrong Email or Password! User has not been found!</string>
+    <string name="error_wrong_credentials_short">Wrong Email or Password!</string>
+
+    <!-- tags -->
+    <string name="tag_save_login">save_login</string>
+    <string name="tag_logout">tag_logout</string>
+    <string name="tag_email">tag_email</string>
+    <string name="tag_password">tag_password</string>
+    <string name="tag_current_user">current_user</string>
 
     <!-- Text -->
     <string name="text_register_here">If you are not a user, register here</string>
     <string name="text_company">Company</string>
+    <string name="text_wrong">Wrong</string>
     <string name="text_terms">By clicking on register, you agree with the following terms</string>
 
     <!-- Content Descriptions -->
     <string name="description_logo">Edillion</string>
+
+    <!-- dialogs -->
+    <string name="dialog_continue">Continue</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="dialog_still_processing_text">Host is not responding or Connection is too slow. Would you like to cancel the process?</string>
+    <string name="dialog_dismiss">Dismiss</string>
+
 </resources>
